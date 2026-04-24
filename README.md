@@ -37,10 +37,12 @@ graph TB
     subgraph CrewDock ["CrewDock (Docker)"]
         GW[OpenClaw Gateway]
 
+        GW --> Overlord["Overlord<br/><i>Sysadmin</i>"]
         GW --> Alfred["Alfred<br/><i>Personal Assistant</i>"]
         GW --> Scouter["Scouter<br/><i>Intel Radar</i>"]
     end
 
+    GW <--> Ollama["Ollama<br/><i>Cloud or Local</i>"]
     Alfred --> |read/write| Google["Google Workspace"]
     Scouter --> |monitor| Sources["RSS / Twitter / Web"]
 
@@ -54,16 +56,37 @@ CrewDock turns a Docker host into a 24/7 AI operations center. It runs
 specialized agents, and wires everything to Discord so you can monitor and
 interact from your phone.
 
-The agents run on cron schedules or on demand. Each one has its own workspace,
+Agents run on heartbeat schedules or on demand. Each one has its own workspace,
 config, and database. You deploy once and they take it from there.
 
+## LLM Provider
+
+Ollama is the only supported LLM provider — by design. Two modes:
+
+- **Cloud (default):** `OLLAMA_HOST=https://ollama.com` + an API key from
+  [ollama.com/settings/keys](https://ollama.com/settings/keys). Zero local
+  infrastructure.
+- **Local:** `OLLAMA_HOST=http://host.docker.internal:11434` (or any reachable
+  LAN host) and leave `OLLAMA_API_KEY` blank.
+
+Every agent inherits `OLLAMA_MODEL` as its default. Override per agent with
+`OLLAMA_MODEL_SCOUTER`, `OLLAMA_MODEL_ALFRED`, or `OLLAMA_MODEL_OVERLORD`
+when you want a specific agent on a different model.
+
 ## The Agents
+
+### Overlord — Sysadmin
+
+Interactive-only orchestrator running on the OpenClaw control UI. Manages
+other agents' heartbeat schedules, channel bindings, and enabled state on
+request — always with a PROPOSE → CONFIRM → execute flow. Never acts
+autonomously and never modifies secrets or gateway config.
 
 ### Alfred — Personal Assistant
 
 Daily briefings and Google Workspace access (Gmail, Calendar, Tasks) via
 Discord. On first message, Alfred walks you through setting your briefing
-schedule. After that, it delivers a morning summary on cron and answers
+schedule. After that, it delivers a morning summary on heartbeat and answers
 workspace queries on demand.
 
 ### Scouter — Intel Radar
@@ -100,10 +123,12 @@ original takes, quote tweets, replies, resource shares, and threads.
 
 - [Docker](https://www.docker.com/) and Docker Compose
 - `curl` and `jq` (used by the install wizard)
+- An [Ollama](https://ollama.com) account with an API key — or a local/LAN
+  Ollama instance if you'd rather self-host
 
-The install wizard walks you through everything else: Discord bots,
-Ollama LLM provider, Google Workspace, X/Twitter. It validates each
-credential before saving.
+The install wizard walks you through everything else: Ollama provider
+(cloud or local), Discord bots, Google Workspace, X/Twitter. It validates
+each credential before saving.
 
 ## Installation
 
@@ -117,7 +142,8 @@ The wizard will:
 
 1. Install [gum](https://github.com/charmbracelet/gum) (TUI framework) if not present
 2. Let you pick which agents to enable
-3. Walk you through each integration (Discord, Google Workspace, X/Twitter, Ollama)
+3. Walk you through Ollama setup (cloud or local) and each integration
+   (Discord, Google Workspace, X/Twitter)
 4. Validate credentials against their APIs in real time
 5. Generate your `.env` and create runtime directories
 6. Offer to start the container (`make up`)
@@ -183,7 +209,7 @@ crewdock/
 ├── init.d/                        # Boot scripts (run on container start)
 ├── home/                          # Persistent /home/node volume (gitignored)
 │   ├── .openclaw/                 # Gateway config + agent workspaces
-│   └── .config/                   # gh, gws, xurl credentials
+│   └── .config/                   # gws, xurl credentials
 ├── docker-compose.yaml            # Core service definition
 ├── docker-compose.override.yaml   # Personal additions (gitignored)
 ├── Dockerfile                     # Base image + core tools
@@ -200,7 +226,7 @@ crewdock/
 Copy `Dockerfile.local.example` to `Dockerfile.local` and add your own tools:
 
 ```dockerfile
-FROM openclaw-openclaw-gateway:latest
+FROM crewdock-openclaw-gateway:latest
 
 USER root
 RUN apt-get update && apt-get install -y your-tools
