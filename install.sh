@@ -26,32 +26,6 @@ if [ ! -f "$MANIFEST" ]; then
   exit 1
 fi
 
-# --- Helper: git identity prompts ---
-_run_git_identity() {
-  print_header "Git Identity"
-  print_info "Used for commits made by Forge."
-  echo ""
-  local existing_name existing_email git_name git_email
-  existing_name=$(env_get "GIT_AUTHOR_NAME")
-  existing_email=$(env_get "GIT_AUTHOR_EMAIL")
-  git_name=$(gum_input "Full name" "${existing_name:-Your Name}")
-  if [ -z "$git_name" ] && [ -n "$existing_name" ]; then
-    git_name="$existing_name"
-  fi
-  git_email=$(gum_input "Email address" "${existing_email:-you@example.com}")
-  if [ -z "$git_email" ] && [ -n "$existing_email" ]; then
-    git_email="$existing_email"
-  fi
-  if [ -z "$git_name" ] || [ -z "$git_email" ]; then
-    print_warn "Git name and email are required. Skipping."
-    echo ""
-    return
-  fi
-  env_set "GIT_AUTHOR_NAME" "$git_name"
-  env_set "GIT_AUTHOR_EMAIL" "$git_email"
-  echo ""
-}
-
 # --- Detect mode ---
 RECONFIG=0
 EXISTING_ENV="$SCRIPT_DIR/.env"
@@ -94,14 +68,12 @@ if [ "$RECONFIG" -eq 1 ]; then
   # Source all integration modules for reconfigure mode
   # shellcheck source=installer/discord.sh
   source "$SCRIPT_DIR/installer/discord.sh"
-  # shellcheck source=installer/github.sh
-  source "$SCRIPT_DIR/installer/github.sh"
-  # shellcheck source=installer/claude.sh
-  source "$SCRIPT_DIR/installer/claude.sh"
   # shellcheck source=installer/gws.sh
   source "$SCRIPT_DIR/installer/gws.sh"
   # shellcheck source=installer/xurl.sh
   source "$SCRIPT_DIR/installer/xurl.sh"
+  # shellcheck source=installer/ollama.sh
+  source "$SCRIPT_DIR/installer/ollama.sh"
 
   # --- Reconfigure: agent submenu ---
   _run_agent_submenu() {
@@ -109,14 +81,6 @@ if [ "$RECONFIG" -eq 1 ]; then
     local agent_name="$2"
     while true; do
       local menu_items=""
-      # Git Identity first for Forge
-      if [ "$agent_id" = "forge" ]; then
-        local git_name
-        git_name=$(env_get "GIT_AUTHOR_NAME")
-        local git_status
-        [ -n "$git_name" ] && git_status="configured" || git_status="not configured"
-        menu_items="${menu_items}Git Identity (${git_status})\n"
-      fi
       # Integrations from manifest
       local intg_ids
       intg_ids=$(jq -r --arg id "$agent_id" '.agents[] | select(.id == $id) | .integrations | keys[]' "$MANIFEST")
@@ -137,34 +101,24 @@ if [ "$RECONFIG" -eq 1 ]; then
       # Strip " (status)" suffix to get the label
       local label
       label=$(echo "$choice" | sed -E 's/ \([^)]*\)$//')
-      if [ "$label" = "Git Identity" ]; then
-        _run_git_identity
-      else
-        # Resolve label back to integration key via manifest
-        local intg_key
-        intg_key=$(jq -r --arg label "$label" \
-          '.integrations | to_entries[] | select(.value.label == $label) | .key' "$MANIFEST")
-        case "$intg_key" in
-          discord)
-            if [ -z "$(env_get "DISCORD_GUILD")" ]; then
-              run_discord_shared
-            fi
-            run_discord_agent "$agent_id" "$agent_name"
-            ;;
-          github)
-            run_github
-            ;;
-          claude)
-            run_claude
-            ;;
-          gws)
-            run_gws
-            ;;
-          xurl)
-            run_xurl
-            ;;
-        esac
-      fi
+      # Resolve label back to integration key via manifest
+      local intg_key
+      intg_key=$(jq -r --arg label "$label" \
+        '.integrations | to_entries[] | select(.value.label == $label) | .key' "$MANIFEST")
+      case "$intg_key" in
+        discord)
+          if [ -z "$(env_get "DISCORD_GUILD")" ]; then
+            run_discord_shared
+          fi
+          run_discord_agent "$agent_id" "$agent_name"
+          ;;
+        gws)
+          run_gws
+          ;;
+        xurl)
+          run_xurl
+          ;;
+      esac
     done
   }
 
@@ -188,12 +142,25 @@ if [ "$RECONFIG" -eq 1 ]; then
       done <<EOF
 $agent_map
 EOF
+      # LLM provider entry
+      local ollama_host ollama_status
+      ollama_host=$(env_get "OLLAMA_HOST")
+      [ -n "$ollama_host" ] && ollama_status="configured" || ollama_status="not configured"
+      menu_items="${menu_items}Ollama LLM provider (${ollama_status})\n"
       menu_items="${menu_items}Done"
 
       local choice
       choice=$(printf "%b" "$menu_items" | gum choose --header "What would you like to configure?")
       [ -z "$choice" ] && break
       [ "$choice" = "Done" ] && break
+
+      case "$choice" in
+        "Ollama LLM provider"*)
+          print_header "Ollama LLM Provider"
+          run_ollama
+          continue
+          ;;
+      esac
 
       # Resolve chosen display string back to agent id
       local chosen_id="" chosen_name=""
@@ -227,11 +194,6 @@ EOF
 
     print_header "Setting up $agent_name"
 
-    # Git Identity for Forge
-    if [ "$agent_id" = "forge" ]; then
-      _run_git_identity
-    fi
-
     # Run each integration
     local intg_ids
     intg_ids=$(jq -r --arg id "$agent_id" '.agents[] | select(.id == $id) | .integrations | keys[]' "$MANIFEST")
@@ -243,14 +205,6 @@ EOF
             run_discord_shared
           fi
           run_discord_agent "$agent_id" "$agent_name"
-          ;;
-        github)
-          print_header "GitHub Setup"
-          run_github
-          ;;
-        claude)
-          print_header "Claude Setup"
-          run_claude
           ;;
         gws)
           print_header "Google Workspace Setup"
@@ -274,8 +228,6 @@ EOF
     # Create runtime directories
     mkdir -p \
       "$SCRIPT_DIR/home/.openclaw/workspace" \
-      "$SCRIPT_DIR/home/.claude" \
-      "$SCRIPT_DIR/home/.config/gh" \
       "$SCRIPT_DIR/home/.config/gws"
     [ -f "$SCRIPT_DIR/home/.xurl" ] || touch "$SCRIPT_DIR/home/.xurl"
 
@@ -298,16 +250,21 @@ EOF
     echo ""
 
     gum style --foreground 212 "Integrations:"
-    local discord_guild gh_token claude_token x_token
+    local discord_guild x_token ollama_host ollama_model
     discord_guild=$(env_get "DISCORD_GUILD")
     [ -n "$discord_guild" ] && echo "  ✓ Discord (configured)" || true
-    gh_token=$(env_get "GH_TOKEN")
-    [ -n "$gh_token" ] && echo "  ✓ GitHub (configured)" || true
-    claude_token=$(env_get "CLAUDE_CODE_OAUTH_TOKEN")
-    [ -n "$claude_token" ] && echo "  ✓ Claude Code (configured)" || true
     [ -f "$SCRIPT_DIR/home/.config/gws/credentials.json" ] && echo "  ✓ Google Workspace (configured)" || true
     x_token=$(env_get "X_BEARER_TOKEN")
     [ -n "$x_token" ] && echo "  ✓ X/Twitter (configured)" || true
+    ollama_host=$(env_get "OLLAMA_HOST")
+    ollama_model=$(env_get "OLLAMA_MODEL")
+    if [ -n "$ollama_host" ]; then
+      if [ -n "$ollama_model" ]; then
+        echo "  ✓ Ollama ($ollama_host, $ollama_model)"
+      else
+        echo "  ✓ Ollama ($ollama_host)"
+      fi
+    fi
     echo ""
 
     if gum_confirm "Restart OpenClaw now? (make restart)"; then
@@ -393,13 +350,6 @@ agents_for_integration() {
   echo "$result"
 }
 
-# --- Screen 3: Git Identity (only for Forge) ---
-case " $SELECTED_AGENT_IDS " in
-  *" forge "*)
-    _run_git_identity
-    ;;
-esac
-
 # --- Compute required and optional integrations ---
 REQUIRED_INTEGRATIONS=""
 OPTIONAL_INTEGRATIONS=""
@@ -442,25 +392,22 @@ OPTIONAL_INTEGRATIONS="${OPTIONAL_INTEGRATIONS# }"
 # --- Track integration status for summary ---
 # Status values: validated, unverified, skipped
 INTG_STATUS_discord=""
-INTG_STATUS_github=""
-INTG_STATUS_claude=""
 INTG_STATUS_gws=""
 INTG_STATUS_xurl=""
+INTG_STATUS_ollama=""
 
 # --- Run integration flows ---
-# Order: discord > github > claude > gws > xurl
+# Order: discord > gws > xurl > ollama
 
 # Source all modules
 # shellcheck source=installer/discord.sh
 source "$SCRIPT_DIR/installer/discord.sh"
-# shellcheck source=installer/github.sh
-source "$SCRIPT_DIR/installer/github.sh"
-# shellcheck source=installer/claude.sh
-source "$SCRIPT_DIR/installer/claude.sh"
 # shellcheck source=installer/gws.sh
 source "$SCRIPT_DIR/installer/gws.sh"
 # shellcheck source=installer/xurl.sh
 source "$SCRIPT_DIR/installer/xurl.sh"
+# shellcheck source=installer/ollama.sh
+source "$SCRIPT_DIR/installer/ollama.sh"
 
 # Discord (shared + per-agent)
 case " $REQUIRED_INTEGRATIONS $OPTIONAL_INTEGRATIONS " in
@@ -479,58 +426,6 @@ case " $REQUIRED_INTEGRATIONS $OPTIONAL_INTEGRATIONS " in
       fi
     done
     INTG_STATUS_discord="${DISCORD_SETUP_STATUS:-unverified}"
-    ;;
-esac
-
-# GitHub
-case " $REQUIRED_INTEGRATIONS " in
-  *" github "*)
-    print_header "GitHub Setup"
-    print_info "Agents: $(agents_for_integration github)"
-    echo ""
-    run_github
-    INTG_STATUS_github="${GITHUB_SETUP_STATUS:-unverified}"
-    ;;
-  *)
-    case " $OPTIONAL_INTEGRATIONS " in
-      *" github "*)
-        if gum_confirm "Set up GitHub integration? (optional for $(agents_for_integration github))"; then
-          print_header "GitHub Setup"
-          print_info "Agents: $(agents_for_integration github)"
-          echo ""
-          run_github
-          INTG_STATUS_github="${GITHUB_SETUP_STATUS:-unverified}"
-        else
-          INTG_STATUS_github="skipped"
-        fi
-        ;;
-    esac
-    ;;
-esac
-
-# Claude
-case " $REQUIRED_INTEGRATIONS " in
-  *" claude "*)
-    print_header "Claude Setup"
-    print_info "Agents: $(agents_for_integration claude)"
-    echo ""
-    run_claude
-    INTG_STATUS_claude="${CLAUDE_SETUP_STATUS:-unverified}"
-    ;;
-  *)
-    case " $OPTIONAL_INTEGRATIONS " in
-      *" claude "*)
-        if gum_confirm "Set up Claude integration? (optional for $(agents_for_integration claude))"; then
-          print_header "Claude Setup"
-          print_info "Agents: $(agents_for_integration claude)"
-          echo ""
-          run_claude
-          INTG_STATUS_claude="${CLAUDE_SETUP_STATUS:-unverified}"
-        else
-          INTG_STATUS_claude="skipped"
-        fi
-        ;;
-    esac
     ;;
 esac
 
@@ -587,14 +482,22 @@ case " $REQUIRED_INTEGRATIONS " in
     ;;
 esac
 
+# Ollama (required: agents need at least one LLM provider to work)
+print_header "Ollama LLM Provider"
+print_info "Agents: $(echo "$SELECTED_AGENT_IDS" | tr ' ' '\n' | while read -r aid; do
+  [ -z "$aid" ] && continue
+  jq -r --arg id "$aid" '.agents[] | select(.id == $id) | .name' "$MANIFEST"
+done | paste -sd ', ' -)"
+echo ""
+run_ollama
+INTG_STATUS_ollama="${OLLAMA_SETUP_STATUS:-skipped}"
+
 # Set OPENCLAW_GATEWAY_TOKEN as empty (auto-generated on boot)
 env_set "OPENCLAW_GATEWAY_TOKEN" ""
 
 # --- Create runtime directories ---
 mkdir -p \
   "$SCRIPT_DIR/home/.openclaw/workspace" \
-  "$SCRIPT_DIR/home/.claude" \
-  "$SCRIPT_DIR/home/.config/gh" \
   "$SCRIPT_DIR/home/.config/gws"
 [ -f "$SCRIPT_DIR/home/.xurl" ] || touch "$SCRIPT_DIR/home/.xurl"
 
@@ -623,16 +526,9 @@ _status_icon() {
 
 # Verifiable integrations: show validation status
 [ -n "$INTG_STATUS_discord" ] && echo "  $(_status_icon "$INTG_STATUS_discord") Discord ($INTG_STATUS_discord)"
-[ -n "$INTG_STATUS_github" ]  && echo "  $(_status_icon "$INTG_STATUS_github") GitHub ($INTG_STATUS_github)"
 [ -n "$INTG_STATUS_xurl" ]    && echo "  $(_status_icon "$INTG_STATUS_xurl") X/Twitter ($INTG_STATUS_xurl)"
+[ -n "$INTG_STATUS_ollama" ]  && echo "  $(_status_icon "$INTG_STATUS_ollama") Ollama ($INTG_STATUS_ollama)"
 # Non-verifiable integrations: show configured/skipped only
-if [ -n "$INTG_STATUS_claude" ]; then
-  if [ "$INTG_STATUS_claude" = "skipped" ]; then
-    echo "  — Claude (skipped)"
-  else
-    echo "  ✓ Claude (configured, verified on boot)"
-  fi
-fi
 if [ -n "$INTG_STATUS_gws" ]; then
   if [ "$INTG_STATUS_gws" = "skipped" ]; then
     echo "  — Google Workspace (skipped)"
@@ -645,23 +541,17 @@ fi
 
 echo ""
 
-gum style --foreground 3 "Next step: LLM Provider"
-echo ""
-print_info "Agents need at least one LLM provider to work."
-print_info "After the container is running, authenticate a provider with:"
-echo ""
-print_info "  make auth"
-echo ""
+if [ "$INTG_STATUS_ollama" != "validated" ] && [ "$INTG_STATUS_ollama" != "unverified" ]; then
+  gum style --foreground 3 "Heads up: Ollama not configured."
+  echo ""
+  print_info "Agents require Ollama to work."
+  print_info "Re-run ./install.sh to configure it."
+  echo ""
+fi
 
 if gum_confirm "Start OpenClaw now? (make up)"; then
   print_info "Running make up..."
   make -C "$SCRIPT_DIR" up
-  echo ""
-  if gum_confirm "Authenticate an LLM provider now? (make auth)"; then
-    make -C "$SCRIPT_DIR" auth
-  else
-    print_info "Run 'make auth' when ready to authenticate a provider."
-  fi
 else
-  print_info "Run 'make up' when ready, then 'make auth' to authenticate a provider."
+  print_info "Run 'make up' when ready."
 fi

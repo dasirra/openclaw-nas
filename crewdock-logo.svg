@@ -60,11 +60,9 @@
     <path d="M-20,38 C-20,38 0,55 20,38" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
   </g>
 
-  <!-- Four agent dots orbiting - representing the 4 agents -->
+  <!-- Three agent dots orbiting - representing the agents -->
   <!-- Overlord (top) -->
   <circle cx="256" cy="76" r="8" fill="#F59E0B" opacity="0.9" filter="glow"/>
-  <!-- Forge (right) -->
-  <circle cx="424" cy="256" r="8" fill="#10B981" opacity="0.9" filter="glow"/>
   <!-- Alfred (bottom) -->
   <circle cx="256" cy="436" r="8" fill="#3B82F6" opacity="0.9" filter="glow"/>
   <!-- Scouter (left) -->

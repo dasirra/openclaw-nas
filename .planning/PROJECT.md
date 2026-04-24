@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Syncthing sidecar container for CrewDock that provides bidirectional sync with the user's Obsidian vault. All agents (Alfred, Forge, Scouter, Overlord) gain read/write access to the vault as a shared knowledge base, mounted at `/home/node/vault`.
+A Syncthing sidecar container for CrewDock that provides bidirectional sync with the user's Obsidian vault. All agents (Alfred, Scouter, Overlord) gain read/write access to the vault as a shared knowledge base, mounted at `/home/node/vault`.
 
 ## Core Value
 
@@ -33,7 +33,7 @@ Every agent in CrewDock can read and write to the user's Obsidian vault in real 
 
 ## Context
 
-- CrewDock runs 4 agents: Alfred (GWS assistant), Forge (dev orchestrator), Scouter (content radar), Overlord (sysadmin)
+- CrewDock runs 3 agents: Alfred (GWS assistant), Scouter (content radar), Overlord (sysadmin)
 - User already runs Syncthing to sync the Obsidian vault across devices
 - The vault lives at `/Users/dasirra/Vault` locally (the "Second Brain")
 - Docker setup uses host networking, single persistent volume at `./home` -> `/home/node`

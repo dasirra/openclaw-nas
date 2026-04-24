@@ -47,7 +47,7 @@ Post a structured report to Discord (The Watchtower):
 Scan 14:30
 
 -- BRIEFING --
-- Anthropic launches Claude 4.5 Opus with... [link]
+- New multimodal model release from DeepSeek with... [link]
 - New repo: agent-toolkit by LangChain... [link]
 
 -- OPPORTUNITIES --

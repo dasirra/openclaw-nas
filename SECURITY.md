@@ -11,10 +11,10 @@ If you discover a security vulnerability in CrewDock, please report it responsib
 
 ## Scope
 
-CrewDock runs as a Docker container with host networking and manages credentials for Discord, GitHub, Google Workspace, and X/Twitter APIs. Security-relevant areas include:
+CrewDock runs as a Docker container and manages credentials for Discord, Google Workspace, and X/Twitter APIs. Security-relevant areas include:
 
 - **Credential storage**: `.env` file permissions and secrets handling
-- **SQL injection**: SQLite helpers in `forge-db.sh` and `scouter-db.sh`
+- **SQL injection**: SQLite helpers in `scouter-db.sh`
 - **Container security**: Dockerfile, entrypoint, and volume mount configuration
 - **Input validation**: Install wizard credential validation
 

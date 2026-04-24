@@ -45,17 +45,11 @@ RUN ARCH=$(dpkg --print-architecture) \
     && chmod +x /usr/local/bin/xurl \
     && rm /tmp/xurl.tar.gz
 
-# Google Workspace CLI + Claude CLI — pinned versions, single layer
-ARG CLAUDE_CLI_VERSION=2.1.83
-RUN npm install -g \
-      @googleworkspace/cli@0.22.1 \
-      @anthropic-ai/claude-code@${CLAUDE_CLI_VERSION}
+# Google Workspace CLI — pinned version
+RUN npm install -g @googleworkspace/cli@0.22.1
 
 # Agent templates (read-only source for entrypoint to copy into workspace)
 COPY --chown=node:node agents/ /opt/openclaw-agents/
-
-# Claude CLI commands (read-only source for entrypoint to copy into ~/.claude)
-COPY --chown=node:node claude/ /opt/claude/
 
 # Entrypoint and init scripts
 COPY --chown=node:node docker-entrypoint.sh /usr/local/bin/

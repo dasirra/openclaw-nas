@@ -21,68 +21,20 @@ teardown() {
 # discord
 # ---------------------------------------------------------------------------
 
-@test "_integration_status: discord configured when DISCORD_FORGE_TOKEN set" {
-  echo "DISCORD_FORGE_TOKEN=some-token" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "discord"
-  [ "$output" = "configured" ]
-}
-
-@test "_integration_status: discord not configured when DISCORD_FORGE_TOKEN empty" {
-  echo "DISCORD_FORGE_TOKEN=" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "discord"
-  [ "$output" = "not configured" ]
-}
-
-@test "_integration_status: discord not configured when DISCORD_FORGE_TOKEN absent" {
-  run _integration_status "forge" "discord"
-  [ "$output" = "not configured" ]
-}
-
-@test "_integration_status: discord uses agent id uppercased (scouter)" {
-  echo "DISCORD_SCOUTER_TOKEN=abc123" > "$TEST_TMPDIR/.env"
+@test "_integration_status: discord configured when DISCORD_SCOUTER_TOKEN set" {
+  echo "DISCORD_SCOUTER_TOKEN=some-token" > "$TEST_TMPDIR/.env"
   run _integration_status "scouter" "discord"
   [ "$output" = "configured" ]
 }
 
-# ---------------------------------------------------------------------------
-# github
-# ---------------------------------------------------------------------------
-
-@test "_integration_status: github configured when GH_TOKEN set" {
-  echo "GH_TOKEN=ghp_abc123" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "github"
-  [ "$output" = "configured" ]
-}
-
-@test "_integration_status: github not configured when GH_TOKEN empty" {
-  echo "GH_TOKEN=" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "github"
+@test "_integration_status: discord not configured when DISCORD_SCOUTER_TOKEN empty" {
+  echo "DISCORD_SCOUTER_TOKEN=" > "$TEST_TMPDIR/.env"
+  run _integration_status "scouter" "discord"
   [ "$output" = "not configured" ]
 }
 
-@test "_integration_status: github not configured when GH_TOKEN absent" {
-  run _integration_status "forge" "github"
-  [ "$output" = "not configured" ]
-}
-
-# ---------------------------------------------------------------------------
-# claude
-# ---------------------------------------------------------------------------
-
-@test "_integration_status: claude configured when CLAUDE_CODE_OAUTH_TOKEN set" {
-  echo "CLAUDE_CODE_OAUTH_TOKEN=oauth-token-xyz" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "claude"
-  [ "$output" = "configured" ]
-}
-
-@test "_integration_status: claude not configured when CLAUDE_CODE_OAUTH_TOKEN empty" {
-  echo "CLAUDE_CODE_OAUTH_TOKEN=" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "claude"
-  [ "$output" = "not configured" ]
-}
-
-@test "_integration_status: claude not configured when CLAUDE_CODE_OAUTH_TOKEN absent" {
-  run _integration_status "forge" "claude"
+@test "_integration_status: discord not configured when DISCORD_SCOUTER_TOKEN absent" {
+  run _integration_status "scouter" "discord"
   [ "$output" = "not configured" ]
 }
 
@@ -93,18 +45,18 @@ teardown() {
 @test "_integration_status: gws configured when credentials.json exists" {
   mkdir -p "$TEST_TMPDIR/home/.config/gws"
   touch "$TEST_TMPDIR/home/.config/gws/credentials.json"
-  run _integration_status "forge" "gws"
+  run _integration_status "scouter" "gws"
   [ "$output" = "configured" ]
 }
 
 @test "_integration_status: gws not configured when credentials.json absent" {
-  run _integration_status "forge" "gws"
+  run _integration_status "scouter" "gws"
   [ "$output" = "not configured" ]
 }
 
 @test "_integration_status: gws not configured when config dir exists but file missing" {
   mkdir -p "$TEST_TMPDIR/home/.config/gws"
-  run _integration_status "forge" "gws"
+  run _integration_status "scouter" "gws"
   [ "$output" = "not configured" ]
 }
 
@@ -114,18 +66,18 @@ teardown() {
 
 @test "_integration_status: xurl configured when X_BEARER_TOKEN set" {
   echo "X_BEARER_TOKEN=bearer-xyz" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "xurl"
+  run _integration_status "scouter" "xurl"
   [ "$output" = "configured" ]
 }
 
 @test "_integration_status: xurl not configured when X_BEARER_TOKEN empty" {
   echo "X_BEARER_TOKEN=" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "xurl"
+  run _integration_status "scouter" "xurl"
   [ "$output" = "not configured" ]
 }
 
 @test "_integration_status: xurl not configured when X_BEARER_TOKEN absent" {
-  run _integration_status "forge" "xurl"
+  run _integration_status "scouter" "xurl"
   [ "$output" = "not configured" ]
 }
 
@@ -134,12 +86,12 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "_integration_status: unknown integration returns not configured" {
-  run _integration_status "forge" "nonexistent"
+  run _integration_status "scouter" "nonexistent"
   [ "$output" = "not configured" ]
 }
 
 @test "_integration_status: unknown integration with token in env still returns not configured" {
   echo "SOME_TOKEN=value" > "$TEST_TMPDIR/.env"
-  run _integration_status "forge" "unknown_intg"
+  run _integration_status "scouter" "unknown_intg"
   [ "$output" = "not configured" ]
 }

@@ -19,6 +19,16 @@ for agent_dir in "$AGENT_TEMPLATES"/*/; do
         target="$WORKSPACE/agents/$agent_name"
     fi
 
+    # Fresh install gate: skip Discord-bound agents with no token set (user didn't pick them).
+    # Existing workspaces still get synced below regardless.
+    if [ ! -d "$target" ] && echo " $DISCORD_AGENTS " | grep -q " $agent_name "; then
+        token_var="DISCORD_$(echo "$agent_name" | tr '[:lower:]' '[:upper:]')_TOKEN"
+        if [ -z "${!token_var:-}" ]; then
+            log "Skipping '$agent_name' (not selected during install)."
+            continue
+        fi
+    fi
+
     if [ ! -d "$target" ]; then
         # --- New agent: install workspace files ---
         log "Installing agent '$agent_name'..."

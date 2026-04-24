@@ -107,7 +107,7 @@ For each due source:
 Scan 14:30
 
 -- BRIEFING --
-- Anthropic launches Claude 4.5 Opus with... [link]
+- New multimodal model release from DeepSeek with... [link]
 - New repo: agent-toolkit by LangChain... [link]
 ```
 
@@ -157,7 +157,7 @@ approve 43 | edit 43 | discard 43 | retype 43 [type]
       "max_results": 10
     },
     "rss": [
-      { "name": "Anthropic Blog", "url": "https://...", "schedule": "twice-daily" }
+      { "name": "Hugging Face Blog", "url": "https://...", "schedule": "twice-daily" }
     ],
     "web": [
       { "name": "GitHub Trending", "url": "https://...", "schedule": "daily-at-10" }

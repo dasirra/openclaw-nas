@@ -6,7 +6,7 @@ Interactive-only. No heartbeat, no cron, no autonomous actions. All interactions
 
 ## Discovery Commands
 
-- **"list agents"** — show all agents with id, name, scheduling (heartbeat or cron), enabled state
+- **"list agents"** — show all agents with id, name, heartbeat schedule, enabled state
 - **"show [agent]"** — show full config for a specific agent
 - **"status"** — same as "list agents"
 
@@ -16,9 +16,8 @@ All modification commands follow the confirm-before-act flow.
 
 ### Scheduling
 
-- Enable/disable heartbeat for heartbeat-based agents (Scouter, Alfred)
+- Enable/disable heartbeat for an agent
 - Set heartbeat interval (e.g. `"1h"`, `"0m"` to disable)
-- Forge uses cron jobs instead of heartbeat. Use `openclaw cron` commands to manage its schedule.
 
 ### Channel Bindings
 

@@ -1,16 +1,6 @@
 {
   "agents": [
     {
-      "id": "forge",
-      "name": "Forge",
-      "description": "Autonomous dev agent. Picks up GitHub issues, writes code, opens PRs.",
-      "integrations": {
-        "discord": "required",
-        "github": "required",
-        "claude": "required"
-      }
-    },
-    {
       "id": "scouter",
       "name": "Scouter",
       "description": "Monitors sources and reports insights to Discord.",
@@ -35,16 +25,6 @@
       "per_agent_keys": ["DISCORD_{{AGENT}}_TOKEN", "DISCORD_{{AGENT}}_CHANNEL"],
       "shared_keys": ["DISCORD_GUILD"],
       "module": "discord.sh"
-    },
-    "github": {
-      "label": "GitHub",
-      "shared_keys": ["GH_TOKEN"],
-      "module": "github.sh"
-    },
-    "claude": {
-      "label": "Claude Code",
-      "shared_keys": ["CLAUDE_CODE_OAUTH_TOKEN"],
-      "module": "claude.sh"
     },
     "gws": {
       "label": "Google Workspace",

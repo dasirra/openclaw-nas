@@ -4,7 +4,7 @@ set -euo pipefail
 INIT_DIR="/usr/local/lib/openclaw-init.d"
 
 # Agents with Discord integration (used by 01-config.sh and 03-agents.sh)
-DISCORD_AGENTS="forge scouter alfred"
+DISCORD_AGENTS="scouter alfred"
 
 # If running as root: fix volume permissions, then re-exec as node.
 # The re-exec falls through to the non-root path below, which sources

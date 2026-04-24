@@ -78,12 +78,11 @@
     Self-hosted AI agents running 24/7 on your server — built on OpenClaw
   </text>
 
-  <!-- Four agent dots at bottom -->
+  <!-- Three agent dots at bottom -->
   <g transform="translate(640,550)">
-    <circle cx="-75" cy="0" r="6" fill="#F59E0B" opacity="0.7"/>
-    <circle cx="-25" cy="0" r="6" fill="#10B981" opacity="0.7"/>
-    <circle cx="25" cy="0" r="6" fill="#3B82F6" opacity="0.7"/>
-    <circle cx="75" cy="0" r="6" fill="#EF4444" opacity="0.7"/>
+    <circle cx="-50" cy="0" r="6" fill="#F59E0B" opacity="0.7"/>
+    <circle cx="0" cy="0" r="6" fill="#3B82F6" opacity="0.7"/>
+    <circle cx="50" cy="0" r="6" fill="#EF4444" opacity="0.7"/>
   </g>
 
   <!-- Thin top/bottom border accent -->

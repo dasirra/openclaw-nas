@@ -23,7 +23,5 @@ services:
       - OPENCLAW_GATEWAY_PORT=18789
       - OPENCLAW_BRIDGE_PORT=18790
       - GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE=/home/node/.config/gws/credentials.json
-      - GIT_COMMITTER_NAME=${GIT_AUTHOR_NAME:-Claude Dev}
-      - GIT_COMMITTER_EMAIL=${GIT_AUTHOR_EMAIL:-claude-dev@localhost}
     volumes:
       - ./home:/home/node

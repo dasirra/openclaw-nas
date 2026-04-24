@@ -6,8 +6,6 @@
 # Pinned versions (correspond to Dockerfile npm pins)
 GWS_COMMIT="a52d297cdfafbc53dfed66a3721a9bbd1d50dc31"  # @googleworkspace/cli@0.22.1
 
-# Claude CLI is pre-installed in the Docker image; assert it is on PATH.
-command -v claude >/dev/null 2>&1 || log "WARNING: Claude CLI not found in image."
 if npx skills list 2>/dev/null | grep -q googleworkspace; then
     log "GWS skills already installed."
 else

@@ -117,10 +117,9 @@ check_deps() {
 # ---------------------------------------------------------------------------
 # .env file management
 # Wizard-managed keys:
-#   GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL,
 #   DISCORD_GUILD, DISCORD_*_TOKEN, DISCORD_*_CHANNEL,
-#   GH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN,
 #   X_BEARER_TOKEN, X_CLIENT_ID, X_CLIENT_SECRET,
+#   OLLAMA_HOST, OLLAMA_MODEL,
 #   OPENCLAW_GATEWAY_TOKEN
 # ---------------------------------------------------------------------------
 
@@ -204,16 +203,6 @@ _integration_status() {
     discord)
       local token
       token=$(env_get "DISCORD_${agent_upper}_TOKEN")
-      [ -n "$token" ] && echo "configured" || echo "not configured"
-      ;;
-    github)
-      local token
-      token=$(env_get "GH_TOKEN")
-      [ -n "$token" ] && echo "configured" || echo "not configured"
-      ;;
-    claude)
-      local token
-      token=$(env_get "CLAUDE_CODE_OAUTH_TOKEN")
       [ -n "$token" ] && echo "configured" || echo "not configured"
       ;;
     gws)

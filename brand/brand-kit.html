@@ -26,7 +26,6 @@
     --surface: #1a1730;
     --surface-elevated: #231f3d;
     --agent-overlord: #F59E0B;
-    --agent-forge: #10B981;
     --agent-alfred: #3B82F6;
     --agent-scouter: #EF4444;
   }
@@ -292,7 +291,7 @@
     padding: 24px;
     border: 1px solid rgba(124,58,237,0.08);
   }
-  .rule-do { border-left: 3px solid var(--agent-forge); }
+  .rule-do { border-left: 3px solid #10B981; }
   .rule-dont { border-left: 3px solid var(--agent-scouter); }
   .rule-label {
     font-size: 11px;
@@ -301,7 +300,7 @@
     font-weight: 600;
     margin-bottom: 12px;
   }
-  .rule-do .rule-label { color: var(--agent-forge); }
+  .rule-do .rule-label { color: #10B981; }
   .rule-dont .rule-label { color: var(--agent-scouter); }
   .rule-text {
     font-size: 14px;
@@ -594,12 +593,6 @@
           <div class="agent-hex">#F59E0B</div>
         </div>
         <div class="agent-chip">
-          <div class="agent-dot" style="background:#10B981;"></div>
-          <div class="agent-name">Forge</div>
-          <div class="agent-role">Dev Autopilot</div>
-          <div class="agent-hex">#10B981</div>
-        </div>
-        <div class="agent-chip">
           <div class="agent-dot" style="background:#3B82F6;"></div>
           <div class="agent-name">Alfred</div>
           <div class="agent-role">Personal Assistant</div>
@@ -677,7 +670,7 @@
       </div>
       <div class="rule-card rule-do">
         <div class="rule-label">Do</div>
-        <div class="rule-text">Use agent accent colors only for their designated agent. Overlord is always amber, Forge is always emerald, etc.</div>
+        <div class="rule-text">Use agent accent colors only for their designated agent. Overlord is always amber, Alfred is always blue, etc.</div>
       </div>
       <div class="rule-card rule-dont">
         <div class="rule-label">Don't</div>
