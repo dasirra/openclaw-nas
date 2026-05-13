@@ -25,3 +25,24 @@ services:
       - GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE=/home/node/.config/gws/credentials.json
     volumes:
       - ./home:/home/node
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+      # Relies on Docker's default seccomp profile for syscall filtering
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    pids_limit: 512
